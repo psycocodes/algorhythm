@@ -11,7 +11,14 @@ import { Slider } from "@/components/ui/slider";
 
 export default function Home() {
   const [photoUrl, setPhotoUrl] = useState("");
-  const [musicUrl, setMusicUrl] = useState("");
+  const [musicParams, setMusicParams] = useState<{
+    tempo: number;
+    key: string;
+    timeSignature: string;
+    instruments: string[];
+    notes: string[];
+    melodyDescription: string;
+  } | null>(null);
   const [analysis, setAnalysis] = useState<{
     dominantColors: string[];
     objects: string[];
@@ -35,8 +42,7 @@ export default function Home() {
         objects: imageAnalysis.objects,
       });
 
-      // Placeholder for music generation logic - replace with actual music generation
-      setMusicUrl("https://www.w3schools.com/html/horse.ogg"); // Replace with generated music URL
+      setMusicParams(musicGeneration);
     } catch (e: any) {
       setError(e.message || "An error occurred during analysis and music generation.");
       console.error(e);
@@ -84,18 +90,24 @@ export default function Home() {
             </div>
           )}
 
-          {musicUrl && (
+          {musicParams && (
             <div className="space-y-4">
               <img src={photoUrl} alt="Uploaded" className="w-full rounded-md shadow-md" />
-              <audio src={musicUrl} controls autoPlay={isPlaying} className="w-full">
-                Your browser does not support the audio element.
-              </audio>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Music Parameters:</h3>
+                <p>Tempo: {musicParams.tempo} BPM</p>
+                <p>Key: {musicParams.key}</p>
+                <p>Time Signature: {musicParams.timeSignature}</p>
+                <p>Instruments: {musicParams.instruments.join(", ")}</p>
+                <p>Notes: {musicParams.notes.join(", ")}</p>
+                <p>Melody Description: {musicParams.melodyDescription}</p>
+              </div>
               <div className="flex items-center justify-between">
-                <Button variant="secondary" onClick={handlePlayPause}>
+                <Button variant="secondary" onClick={handlePlayPause} disabled>
                   {isPlaying ? <Icons.pause /> : <Icons.play />}
                   {isPlaying ? "Pause" : "Play"}
                 </Button>
-                <Button onClick={handleDownload} className="bg-accent text-accent-foreground hover:bg-accent/80">
+                <Button onClick={handleDownload} className="bg-accent text-accent-foreground hover:bg-accent/80" disabled>
                   <Icons.download />
                   Download
                 </Button>

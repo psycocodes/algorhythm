@@ -5,7 +5,7 @@
  *
  * - generateMusic - A function that handles the music generation process.
  * - GenerateMusicInput - The input type for the generateMusic function.
- * - GenerateMusicOutput - The return type for the generateMusic function.
+ * - GenerateMusicOutput - The return type for the GenerateMusic function.
  */
 
 import {ai} from '@/ai/ai-instance';
@@ -20,8 +20,11 @@ export type GenerateMusicInput = z.infer<typeof GenerateMusicInputSchema>;
 
 const GenerateMusicOutputSchema = z.object({
   tempo: z.number().describe('The tempo of the music in BPM.'),
+  key: z.string().describe('The key of the music (e.g., C major, A minor).'),
+  timeSignature: z.string().describe('The time signature of the music (e.g., 4/4, 3/4).'),
   instruments: z.array(z.string()).describe('The instruments used in the music.'),
-  melody: z.string().describe('The description of the melody.'),
+  notes: z.array(z.string()).describe('An array of musical notes for the melody.'),
+  melodyDescription: z.string().describe('A description of the melody. '),
 });
 export type GenerateMusicOutput = z.infer<typeof GenerateMusicOutputSchema>;
 
@@ -41,8 +44,11 @@ const prompt = ai.definePrompt({
   output: {
     schema: z.object({
       tempo: z.number().describe('The tempo of the music in BPM.'),
+      key: z.string().describe('The key of the music (e.g., C major, A minor).'),
+      timeSignature: z.string().describe('The time signature of the music (e.g., 4/4, 3/4).'),
       instruments: z.array(z.string()).describe('The instruments used in the music.'),
-      melody: z.string().describe('The description of the melody.'),
+      notes: z.array(z.string()).describe('An array of musical notes for the melody.'),
+      melodyDescription: z.string().describe('A description of the melody.'),
     }),
   },
   prompt: `You are a composer who generates music based on image analysis.
@@ -54,11 +60,13 @@ Dominant Colors: {{#each dominantColors}}{{{this}}} {{/each}}
 Objects: {{#each objects}}{{{this}}} {{/each}}
 
 Consider these factors when composing the music:
-- The mood should be reflected in the tempo and melody.
+- The mood should be reflected in the tempo, key, and time signature.
 - The dominant colors should influence the selection of instruments and the overall tone.
 - The objects should inspire the melody and rhythm.
 
-Output the tempo in BPM, the instruments used, and a description of the melody.`, 
+Output the tempo in BPM, the key, the time signature, the instruments used, an array of musical notes for the melody, and a description of the melody. The notes should be a string array of notes.
+
+Ensure the music is harmonious and well-structured.`,
 });
 
 const generateMusicFlow = ai.defineFlow<
