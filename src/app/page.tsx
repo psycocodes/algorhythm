@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { analyzeImage } from "@/ai/flows/analyze-image";
 import { generateMusic } from "@/ai/flows/generate-music";
 import { Icons } from "@/components/icons";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import * as Tone from 'tone';
 
 export default function Home() {
   const [photoUrl, setPhotoUrl] = useState("");
@@ -28,6 +29,36 @@ export default function Home() {
   const [tempo, setTempo] = useState(120); // Default tempo
   const [volume, setVolume] = useState(50); // Default volume
   const [error, setError] = useState<string | null>(null);
+  const synth = useRef<Tone.Synth | null>(null);
+  const sequence = useRef<Tone.Sequence | null>(null);
+
+  useEffect(() => {
+    synth.current = new Tone.Synth().toDestination();
+    return () => {
+      if (synth.current) {
+        synth.current.dispose();
+      }
+      if (sequence.current) {
+        sequence.current.dispose();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (musicParams && synth.current) {
+      if (sequence.current) {
+        sequence.current.dispose();
+      }
+      sequence.current = new Tone.Sequence(
+        (time, note) => {
+          synth.current?.triggerAttackRelease(note, "8n", time);
+        },
+        musicParams.notes,
+        "4n"
+      ).start(0);
+      Tone.Transport.bpm.value = musicParams.tempo;
+    }
+  }, [musicParams]);
 
 
   const handlePhotoUpload = async () => {
@@ -49,13 +80,36 @@ export default function Home() {
     }
   };
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+  const handlePlayPause = async () => {
+    if (!musicParams) return;
+
+    if (Tone.Transport.state === "started") {
+      Tone.Transport.pause();
+      setIsPlaying(false);
+    } else {
+      if (Tone.Transport.state === "stopped") {
+        await Tone.start();
+      }
+      Tone.Transport.start();
+      setIsPlaying(true);
+    }
   };
 
   const handleDownload = () => {
     // Placeholder for download logic
     alert("Download functionality not implemented yet.");
+  };
+
+  const handleTempoChange = (value: number[]) => {
+    setTempo(value[0]);
+    if (musicParams) {
+      Tone.Transport.bpm.value = value[0];
+    }
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value[0]);
+    Tone.Destination.volume.value = Tone.dbToGain(value[0] - 50); // Adjust as needed
   };
 
   return (
@@ -103,7 +157,7 @@ export default function Home() {
                 <p>Melody Description: {musicParams.melodyDescription}</p>
               </div>
               <div className="flex items-center justify-between">
-                <Button variant="secondary" onClick={handlePlayPause} disabled>
+                <Button variant="secondary" onClick={handlePlayPause}>
                   {isPlaying ? <Icons.pause /> : <Icons.play />}
                   {isPlaying ? "Pause" : "Play"}
                 </Button>
@@ -123,7 +177,7 @@ export default function Home() {
                     max={200}
                     min={50}
                     step={1}
-                    onValueChange={(value) => setTempo(value[0])}
+                    onValueChange={handleTempoChange}
                   />
                   <span className="text-sm">{tempo} BPM</span>
                 </div>
@@ -137,7 +191,7 @@ export default function Home() {
                     max={100}
                     min={0}
                     step={1}
-                    onValueChange={(value) => setVolume(value[0])}
+                    onValueChange={(value) => handleVolumeChange}
                   />
                   <span className="text-sm">{volume}%</span>
                 </div>
