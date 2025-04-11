@@ -13,17 +13,20 @@ import * as Tone from 'tone';
 export default function Home() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [musicParams, setMusicParams] = useState<{
-    tempo: number;
-    key: string;
-    timeSignature: string;
+    tempoChanges: number[];
+    keyChanges: string[];
+    timeSignatureChanges: string[];
     instruments: string[];
     notes: string[];
     melodyDescription: string;
+    chordProgression: string[];
   } | null>(null);
   const [analysis, setAnalysis] = useState<{
     dominantColors: string[];
     objects: string[];
     mood: string;
+    style: string;
+    lighting: string;
   } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [tempo, setTempo] = useState(120); // Default tempo
@@ -56,7 +59,7 @@ export default function Home() {
         musicParams.notes,
         "4n"
       ).start(0);
-      Tone.Transport.bpm.value = musicParams.tempo;
+      Tone.Transport.bpm.value = musicParams.tempoChanges[0];
     }
   }, [musicParams]);
 
@@ -71,6 +74,8 @@ export default function Home() {
         mood: imageAnalysis.mood,
         dominantColors: imageAnalysis.dominantColors,
         objects: imageAnalysis.objects,
+        style: imageAnalysis.style,
+        lighting: imageAnalysis.lighting,
       });
 
       setMusicParams(musicGeneration);
@@ -141,6 +146,8 @@ export default function Home() {
               <p>Mood: {analysis.mood}</p>
               <p>Dominant Colors: {analysis.dominantColors.join(", ")}</p>
               <p>Objects: {analysis.objects.join(", ")}</p>
+              <p>Style: {analysis.style}</p>
+              <p>Lighting: {analysis.lighting}</p>
             </div>
           )}
 
@@ -149,11 +156,12 @@ export default function Home() {
               <img src={photoUrl} alt="Uploaded" className="w-full rounded-md shadow-md" />
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Music Parameters:</h3>
-                <p>Tempo: {musicParams.tempo} BPM</p>
-                <p>Key: {musicParams.key}</p>
-                <p>Time Signature: {musicParams.timeSignature}</p>
+                <p>Tempo Changes: {musicParams.tempoChanges.join(", ")} BPM</p>
+                <p>Key Changes: {musicParams.keyChanges.join(", ")}</p>
+                <p>Time Signature Changes: {musicParams.timeSignatureChanges.join(", ")}</p>
                 <p>Instruments: {musicParams.instruments.join(", ")}</p>
                 <p>Notes: {musicParams.notes.join(", ")}</p>
+                <p>Chord Progression: {musicParams.chordProgression.join(", ")}</p>
                 <p>Melody Description: {musicParams.melodyDescription}</p>
               </div>
               <div className="flex items-center justify-between">
@@ -203,3 +211,4 @@ export default function Home() {
     </div>
   );
 }
+

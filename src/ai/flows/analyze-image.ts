@@ -18,8 +18,10 @@ export type AnalyzeImageInput = z.infer<typeof AnalyzeImageInputSchema>;
 
 const AnalyzeImageOutputSchema = z.object({
   dominantColors: z.array(z.string()).describe('The dominant colors in the image.'),
-  objects: z.array(z.string()).describe('The objects detected in the image.'),
-  mood: z.string().describe('The overall mood of the image.'),
+  objects: z.array(z.string()).describe('The objects detected in the image, focusing on the most emotionally impactful.'),
+  mood: z.string().describe('The overall mood of the image, capturing its emotional complexities.'),
+  style: z.string().describe('The artistic style of the image (e.g., impressionistic, abstract, realistic).'),
+  lighting: z.string().describe('The type of lighting in the image (e.g., soft, harsh, natural, artificial).'),
 });
 export type AnalyzeImageOutput = z.infer<typeof AnalyzeImageOutputSchema>;
 
@@ -37,19 +39,23 @@ const analyzeImagePrompt = ai.definePrompt({
   output: {
     schema: z.object({
       dominantColors: z.array(z.string()).describe('The dominant colors in the image.'),
-      objects: z.array(z.string()).describe('The objects detected in the image.'),
-      mood: z.string().describe('The overall mood of the image.'),
+      objects: z.array(z.string()).describe('The objects detected in the image, focusing on the most emotionally impactful.'),
+      mood: z.string().describe('The overall mood of the image, capturing its emotional complexities.'),
+      style: z.string().describe('The artistic style of the image (e.g., impressionistic, abstract, realistic).'),
+      lighting: z.string().describe('The type of lighting in the image (e.g., soft, harsh, natural, artificial).'),
     }),
   },
   prompt: `You are an AI expert in computer vision with a deep understanding of art and emotion.
 
-You will analyze the image at the provided URL and identify the dominant colors, objects, and overall mood of the image. Pay close attention to the emotional context and subtle details within the picture.
+You will analyze the image at the provided URL, identifying dominant colors, objects, overall mood, artistic style, and lighting to understand its emotional and aesthetic essence. Pay close attention to the emotional context and subtle details within the picture.
 
 Consider how the arrangement of objects, the use of light and shadow, and the color palette contribute to the overall feeling conveyed by the image. Identify not just the objects present, but also their relationships and how they interact to create a cohesive emotional experience.
 
-Return the dominant colors as an array of strings.
-Return the objects detected as an array of strings, focusing on those that contribute most to the image's emotional impact.
-Return the overall mood of the image as a string, capturing the nuances and complexities of the emotional experience it evokes.
+- Return the dominant colors as an array of strings.
+- Return the objects detected as an array of strings, focusing on those that contribute most to the image's emotional impact.
+- Return the overall mood of the image as a string, capturing the nuances and complexities of the emotional experience it evokes.
+- Return the artistic style of the image (e.g., impressionistic, abstract, realistic).
+- Return the type of lighting in the image (e.g., soft, harsh, natural, artificial).
 
 Photo URL: {{photoUrl}}`,
 });
@@ -65,3 +71,4 @@ const analyzeImageFlow = ai.defineFlow<
   const {output} = await analyzeImagePrompt(input);
   return output!;
 });
+
